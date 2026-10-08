@@ -11,6 +11,7 @@ import { DesignPicker } from "./design-picker";
 import { MemberEditor } from "./member-editor";
 import { MemberList } from "./member-list";
 import { ScaledPage } from "./scaled-page";
+import { SiteFooter } from "./site-footer";
 
 export function ProfileBuilder() {
   const { state, selected, hydrated, saveStatus, actions } = useProfiles();
@@ -146,6 +147,8 @@ export function ProfileBuilder() {
           </div>
         </section>
       </main>
+
+      <SiteFooter />
     </div>
   );
 }
