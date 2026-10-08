@@ -3,11 +3,11 @@
 A small Next.js app for making one-page member profiles and downloading them as a PDF.
 
 - Add as many members as you need. Each member becomes one A4 page.
-- Upload a photo. It is cropped to a square and resized in the browser.
+- Upload a photo (JPG, PNG, WebP or HEIC, up to 50MB). Every photo is cropped to a square, resized to 640px and compressed to a JPEG under 200KB in the browser. HEIC is converted with a WebAssembly decoder that only downloads when someone uploads a HEIC file.
 - Fill in Name, Branch / Area, Member No. and Position / Role. Use **Edit fields** to rename, reorder, add or remove fields (up to 10), and to change the page title and footer.
 - Pick from four templates (Classic, Sidebar, Banner, Minimal) and five colours.
 - **Download PDF** exports every member. The download icon on a member exports only that member.
-- Your work is saved in the browser's local storage. Nothing is uploaded to a server.
+- Your work is saved in the browser (IndexedDB). Nothing is uploaded to a server.
 
 ## Stack
 

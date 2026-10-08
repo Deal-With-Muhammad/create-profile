@@ -67,8 +67,10 @@ export function PhotoPicker({ photo, onChange }: PhotoPickerProps) {
 
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium text-neutral-900">Photo</p>
-        <p className="mt-0.5 text-sm text-neutral-500">
-          Drop an image here or upload. Square photos work best.
+        <p className="mt-0.5 text-sm text-neutral-500" aria-live="polite">
+          {busy
+            ? "Preparing photo… HEIC photos can take a few seconds."
+            : "JPG, PNG or HEIC. Drop an image here or upload."}
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           <Button
@@ -96,7 +98,7 @@ export function PhotoPicker({ photo, onChange }: PhotoPickerProps) {
       <input
         ref={inputRef}
         type="file"
-        accept="image/png,image/jpeg,image/webp,image/*"
+        accept="image/*,.heic,.heif"
         className="hidden"
         onChange={(e) => void handleFile(e.target.files?.[0])}
       />

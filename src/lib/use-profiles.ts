@@ -1,26 +1,45 @@
 "use client";
 
+import { get, set } from "idb-keyval";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createId, createInitialState, createMember } from "./defaults";
 import type { DocSettings, Field, Member, ProfilesState } from "./types";
 
 const STORAGE_KEY = "member-profiles:v1";
 
-function load(): ProfilesState | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as ProfilesState;
-    if (!Array.isArray(parsed.fields) || !Array.isArray(parsed.members)) {
-      return null;
-    }
-    return parsed;
-  } catch {
-    return null;
-  }
+function isValid(value: unknown): value is ProfilesState {
+  const s = value as ProfilesState | undefined;
+  return (
+    !!s &&
+    Array.isArray(s.fields) &&
+    Array.isArray(s.members) &&
+    s.members.length > 0
+  );
 }
 
-export type SaveStatus = "saved" | "full";
+/**
+ * State lives in IndexedDB: localStorage caps out around 5MB, which is only a
+ * few dozen photos. Earlier versions used localStorage, so migrate once.
+ */
+async function load(): Promise<ProfilesState | null> {
+  const saved = await get<ProfilesState>(STORAGE_KEY);
+  if (isValid(saved)) return saved;
+
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const legacy: unknown = raw ? JSON.parse(raw) : null;
+    if (isValid(legacy)) {
+      await set(STORAGE_KEY, legacy);
+      localStorage.removeItem(STORAGE_KEY);
+      return legacy;
+    }
+  } catch {
+    // Corrupt or inaccessible legacy data: start fresh.
+  }
+  return null;
+}
+
+export type SaveStatus = "saved" | "failed";
 
 export function useProfiles() {
   const [state, setState] = useState<ProfilesState>(createInitialState);
@@ -33,13 +52,20 @@ export function useProfiles() {
 
   // Restore after mount so server and client render the same first frame.
   useEffect(() => {
-    const saved = load();
-    if (saved && saved.members.length > 0) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time restore from storage
-      setState(saved);
-      setSelectedId(saved.members[0].id);
-    }
-    setHydrated(true);
+    let cancelled = false;
+    load()
+      .catch(() => null)
+      .then((saved) => {
+        if (cancelled) return;
+        if (saved) {
+          setState(saved);
+          setSelectedId(saved.members[0].id);
+        }
+        setHydrated(true);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -49,13 +75,11 @@ export function useProfiles() {
       return;
     }
     const id = window.setTimeout(() => {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        setSaveStatus("saved");
-      } catch {
-        // Photos are the bulk of the payload; browsers cap storage at ~5MB.
-        setSaveStatus("full");
-      }
+      // Fails if the disk is full or storage is blocked (some private modes).
+      set(STORAGE_KEY, state).then(
+        () => setSaveStatus("saved"),
+        () => setSaveStatus("failed"),
+      );
     }, 400);
     return () => window.clearTimeout(id);
   }, [state, hydrated]);

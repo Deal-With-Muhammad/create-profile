@@ -60,8 +60,8 @@ export function ProfileBuilder() {
                 Member Profiles
               </h1>
               <p className="hidden text-xs text-neutral-500 sm:block">
-                {saveStatus === "full"
-                  ? "Storage full: changes won't survive a refresh"
+                {saveStatus === "failed"
+                  ? "Couldn't save: changes won't survive a refresh"
                   : "Saved in this browser"}
               </p>
             </div>
