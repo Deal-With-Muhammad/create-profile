@@ -1,0 +1,19 @@
+@import "tailwindcss";
+@import "@heroui/styles";
+
+/* Light theme only. Flat, solid colours; no gradients. */
+:root {
+  --accent: oklch(0.42 0.11 255);
+  --accent-foreground: oklch(100% 0 0);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
